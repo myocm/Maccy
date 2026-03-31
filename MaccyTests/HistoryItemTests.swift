@@ -131,6 +131,32 @@ class HistoryItemTests: XCTestCase {
     XCTAssertEqual(item2.pin, "")
   }
 
+  func testSupersedesWithTrimmedWhitespace() {
+    let item1 = historyItem("hello")
+    let item2 = historyItem("  hello  ")
+    let item3 = historyItem("\nhello\n")
+    let item4 = historyItem("\thello\t")
+    let item5 = historyItem("  \n\t hello \t\n  ")
+
+    // All items with "hello" (with different whitespace) should be considered as superseding each other
+    // when comparing (comparison trims all whitespace including newlines)
+    XCTAssertTrue(item1.supersedes(item2))
+    XCTAssertTrue(item1.supersedes(item3))
+    XCTAssertTrue(item1.supersedes(item4))
+    XCTAssertTrue(item1.supersedes(item5))
+    XCTAssertTrue(item2.supersedes(item1))
+    XCTAssertTrue(item3.supersedes(item1))
+  }
+
+  func testSupersedesWithDifferentContent() {
+    let item1 = historyItem("hello")
+    let item2 = historyItem("world")
+
+    // Items with different content should not supersede each other
+    XCTAssertFalse(item1.supersedes(item2))
+    XCTAssertFalse(item2.supersedes(item1))
+  }
+
   private func historyItem(_ value: String?) -> HistoryItem {
     let contents = [
       HistoryItemContent(

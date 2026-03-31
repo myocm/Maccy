@@ -81,8 +81,24 @@ class HistoryItem {
         !Self.transientTypes.contains(content.type)
       }
       .allSatisfy { content in
-        contents.contains(where: { $0.type == content.type && $0.value == content.value })
+        contents.contains(where: { $0.type == content.type && isSameValue($0, content) })
       }
+  }
+
+  private func isSameValue(_ lhs: HistoryItemContent, _ rhs: HistoryItemContent) -> Bool {
+    // For string type, trim spaces, tabs and newlines for comparison
+    if lhs.type == NSPasteboard.PasteboardType.string.rawValue,
+       let lhsData = lhs.value,
+       let rhsData = rhs.value,
+       let lhsString = String(data: lhsData, encoding: .utf8),
+       let rhsString = String(data: rhsData, encoding: .utf8) {
+      // Trim all whitespace and newlines when comparing
+      return lhsString.trimmingCharacters(in: .whitespacesAndNewlines) ==
+             rhsString.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    // For other types, compare data directly
+    return lhs.value == rhs.value
   }
 
   func generateTitle() -> String {

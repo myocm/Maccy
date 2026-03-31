@@ -208,7 +208,16 @@ class Clipboard {
       }
 
       types.forEach { type in
-        contents.append(HistoryItemContent(type: type.rawValue, value: item.data(forType: type)))
+        var data = item.data(forType: type)
+
+        // Trim leading/trailing spaces and tabs (but keep newlines) for string type
+        if type == .string, let stringData = data, let string = String(data: stringData, encoding: .utf8) {
+          let spacesAndTabs = CharacterSet(charactersIn: " \t")
+          let trimmedString = string.trimmingCharacters(in: spacesAndTabs)
+          data = trimmedString.data(using: .utf8)
+        }
+
+        contents.append(HistoryItemContent(type: type.rawValue, value: data))
       }
     })
 
